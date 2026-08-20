@@ -45,3 +45,53 @@ def save_history(history: dict) -> None:
         json.dumps(history, indent=2, sort_keys=True, ensure_ascii=False),
         encoding="utf-8",
     )
+
+
+def build_email(today: str, products: list, today_results: dict, errors: list, history: dict) -> tuple:
+    earlier_dates = sorted(d for d in history if d < today)
+    prev_results = history[earlier_dates[-1]] if earlier_dates else {}
+
+    rows = []
+    for product in products:
+        pid = product["id"]
+        current = today_results.get(pid)
+        if current is None:
+            rows.append(
+                f'<tr><td>{product["name"]}</td>'
+                f'<td colspan="3" style="color:#b00020">抓取失败，请检查</td></tr>'
+            )
+            continue
+        price = current["price"]
+        rrp = current["rrp"]
+        previous = prev_results.get(pid)
+        if previous is None:
+            delta_html = "—"
+        else:
+            delta = round(price - previous["price"], 2)
+            if delta < 0:
+                delta_html = f'<span style="color:green">↓ ${abs(delta):.2f}</span>'
+            elif delta > 0:
+                delta_html = f'<span style="color:#b00020">↑ ${delta:.2f}</span>'
+            else:
+                delta_html = '<span style="color:gray">持平</span>'
+        rows.append(
+            f'<tr><td><a href="{product["url"]}">{product["name"]}</a></td>'
+            f'<td>${price:.2f}</td><td>{delta_html}</td><td>${rrp:.2f}</td></tr>'
+        )
+
+    error_note = ""
+    subject_suffix = ""
+    if errors:
+        error_note = "<p><b>抓取失败:</b> " + "; ".join(errors) + "</p>"
+        subject_suffix = "（有抓取失败）"
+
+    body = (
+        f"<h2>Chemist Warehouse 每日价格报告 - {today}</h2>"
+        + error_note
+        + '<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse">'
+        + "<tr><th>商品</th><th>今日价</th><th>涨跌</th><th>RRP</th></tr>"
+        + "".join(rows)
+        + "</table>"
+    )
+    subject = f"[价格监控] {today} Chemist Warehouse 报告{subject_suffix}"
+    return subject, body

@@ -41,3 +41,29 @@ def test_load_and_save_history_roundtrip(tmp_path, monkeypatch):
     monkeypatch.setattr(fetch_prices, "HISTORY_FILE", history_file)
     fetch_prices.save_history({"2026-08-20": {"p1": {"price": 1.0, "rrp": 2.0}}})
     assert fetch_prices.load_history() == {"2026-08-20": {"p1": {"price": 1.0, "rrp": 2.0}}}
+
+
+def test_build_email_shows_price_drop():
+    products = [{"id": "p1", "name": "Product One", "url": "https://example.com/p1"}]
+    today_results = {
+        "p1": {"name": "Product One", "url": "https://example.com/p1", "price": 20.0, "rrp": 30.0}
+    }
+    history = {
+        "2026-08-19": {
+            "p1": {"name": "Product One", "url": "https://example.com/p1", "price": 25.0, "rrp": 30.0}
+        }
+    }
+    subject, body = fetch_prices.build_email("2026-08-20", products, today_results, [], history)
+    assert "2026-08-20" in subject
+    assert "$20.00" in body
+    assert "$5.00" in body
+    assert "Product One" in body
+
+
+def test_build_email_flags_fetch_failure():
+    products = [{"id": "p1", "name": "Product One", "url": "https://example.com/p1"}]
+    subject, body = fetch_prices.build_email(
+        "2026-08-20", products, {"p1": None}, ["Product One: timeout"], {}
+    )
+    assert "有抓取失败" in subject
+    assert "抓取失败" in body
