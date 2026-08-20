@@ -65,7 +65,7 @@ def test_build_email_flags_fetch_failure():
     subject, body = fetch_prices.build_email(
         "2026-08-20", products, {"p1": None}, ["Product One: timeout"], {}
     )
-    assert "有抓取失败" in subject
+    assert "全部抓取失败" in subject
     assert "抓取失败" in body
 
 

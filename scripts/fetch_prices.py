@@ -88,7 +88,7 @@ def build_email(today: str, products: list, today_results: dict, errors: list, h
     subject_suffix = ""
     if errors:
         error_note = "<p><b>抓取失败:</b> " + "; ".join(errors) + "</p>"
-        subject_suffix = "（有抓取失败）"
+        subject_suffix = "（有抓取失败）" if len(errors) < len(products) else "（全部抓取失败）"
 
     body = (
         f"<h2>Chemist Warehouse 每日价格报告 - {today}</h2>"
