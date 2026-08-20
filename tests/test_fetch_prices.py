@@ -27,7 +27,7 @@ def test_in_send_window_true_at_nine_am():
 
 
 def test_in_send_window_false_outside_window():
-    now = datetime(2026, 8, 20, 10, 0, tzinfo=ZoneInfo("Australia/Sydney"))
+    now = datetime(2026, 8, 20, 12, 0, tzinfo=ZoneInfo("Australia/Sydney"))
     assert fetch_prices.in_send_window(now) is False
 
 
@@ -67,6 +67,22 @@ def test_build_email_flags_fetch_failure():
     )
     assert "全部抓取失败" in subject
     assert "抓取失败" in body
+
+
+def test_build_email_flags_partial_failure():
+    products = [
+        {"id": "p1", "name": "Product One", "url": "https://example.com/p1"},
+        {"id": "p2", "name": "Product Two", "url": "https://example.com/p2"},
+    ]
+    today_results = {
+        "p1": {"name": "Product One", "url": "https://example.com/p1", "price": 10.0, "rrp": 15.0},
+        "p2": None,
+    }
+    subject, body = fetch_prices.build_email(
+        "2026-08-20", products, today_results, ["Product Two: timeout"], {}
+    )
+    assert "有抓取失败" in subject
+    assert "全部抓取失败" not in subject
 
 
 class FakeResponse:

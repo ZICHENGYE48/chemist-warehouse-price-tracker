@@ -43,7 +43,7 @@ jobs:
           git push
 
       - name: Send email report
-        if: steps.fetch.outputs.should_run == 'true'
+        if: always() && steps.fetch.outputs.should_run == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com

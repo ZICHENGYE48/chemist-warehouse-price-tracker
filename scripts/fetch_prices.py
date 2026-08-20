@@ -30,8 +30,7 @@ def parse_product_page(html: str) -> dict:
 
 
 def in_send_window(now: datetime) -> bool:
-    target = now.replace(hour=9, minute=0, second=0, microsecond=0)
-    return abs((now - target).total_seconds()) <= 5 * 60
+    return 8 <= now.hour < 11
 
 
 def load_products() -> list:
@@ -130,7 +129,7 @@ def fetch_all(products: list) -> tuple:
             }
         except Exception as exc:
             results[product["id"]] = None
-            errors.append(f"{product['name']}: {exc}")
+            errors.append(f"{product['name']}: {type(exc).__name__}: {exc}")
     return results, errors
 
 
@@ -153,16 +152,21 @@ def main() -> None:
     args = parser.parse_args()
 
     now = datetime.now(SYDNEY_TZ)
+    today = now.date().isoformat()
+
     if not args.force and not args.dry_run and not in_send_window(now):
-        print(f"Sydney time is {now.isoformat()}, outside 8:55-9:05 window. Skipping.")
+        print(f"Sydney time is {now.isoformat()}, outside the 8am-11am send window. Skipping.")
+        write_github_output("should_run", "false")
+        return
+
+    history = load_history()
+    if not args.force and not args.dry_run and today in history:
+        print(f"{today} already recorded in history; skipping duplicate run.")
         write_github_output("should_run", "false")
         return
 
     products = load_products()
     results, errors = fetch_all(products)
-    today = now.date().isoformat()
-
-    history = load_history()
     history[today] = results
 
     subject, body = build_email(today, products, results, errors, history)
