@@ -67,3 +67,37 @@ def test_build_email_flags_fetch_failure():
     )
     assert "有抓取失败" in subject
     assert "抓取失败" in body
+
+
+class FakeResponse:
+    def __init__(self, text, status=200):
+        self.text = text
+        self.status_code = status
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
+
+def test_fetch_all_continues_after_one_failure(monkeypatch):
+    products = [
+        {"id": "ok", "name": "OK Product", "url": "https://example.com/ok"},
+        {"id": "bad", "name": "Bad Product", "url": "https://example.com/bad"},
+    ]
+
+    def fake_get(url, headers=None, timeout=None):
+        if "ok" in url:
+            return FakeResponse(FIXTURE_HTML)
+        return FakeResponse("not found", status=404)
+
+    monkeypatch.setattr(fetch_prices.requests, "get", fake_get)
+    results, errors = fetch_prices.fetch_all(products)
+    assert results["ok"] == {
+        "name": "OK Product",
+        "url": "https://example.com/ok",
+        "price": 47.99,
+        "rrp": 79.99,
+    }
+    assert results["bad"] is None
+    assert len(errors) == 1
+    assert "Bad Product" in errors[0]

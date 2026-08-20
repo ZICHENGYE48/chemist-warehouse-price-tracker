@@ -4,6 +4,8 @@ import re
 from datetime import datetime
 from pathlib import Path
 
+import requests
+
 NEXT_DATA_RE = re.compile(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', re.S)
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -95,3 +97,35 @@ def build_email(today: str, products: list, today_results: dict, errors: list, h
     )
     subject = f"[价格监控] {today} Chemist Warehouse 报告{subject_suffix}"
     return subject, body
+
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+)
+
+
+def fetch_one(product: dict) -> dict:
+    response = requests.get(
+        product["url"], headers={"User-Agent": USER_AGENT}, timeout=15
+    )
+    response.raise_for_status()
+    return parse_product_page(response.text)
+
+
+def fetch_all(products: list) -> tuple:
+    results = {}
+    errors = []
+    for product in products:
+        try:
+            parsed = fetch_one(product)
+            results[product["id"]] = {
+                "name": product["name"],
+                "url": product["url"],
+                "price": parsed["price"],
+                "rrp": parsed["rrp"],
+            }
+        except Exception as exc:
+            results[product["id"]] = None
+            errors.append(f"{product['name']}: {exc}")
+    return results, errors
