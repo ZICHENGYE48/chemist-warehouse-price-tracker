@@ -1,8 +1,11 @@
 """Fetch Chemist Warehouse prices, update history, build email report."""
+import argparse
 import json
+import os
 import re
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -129,3 +132,53 @@ def fetch_all(products: list) -> tuple:
             results[product["id"]] = None
             errors.append(f"{product['name']}: {exc}")
     return results, errors
+
+
+SYDNEY_TZ = ZoneInfo("Australia/Sydney")
+EMAIL_BODY_FILE = ROOT / "email_body.html"
+
+
+def write_github_output(key: str, value: str) -> None:
+    output_file = os.environ.get("GITHUB_OUTPUT")
+    if not output_file:
+        return
+    with open(output_file, "a", encoding="utf-8") as f:
+        f.write(f"{key}={value}\n")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--force", action="store_true")
+    args = parser.parse_args()
+
+    now = datetime.now(SYDNEY_TZ)
+    if not args.force and not args.dry_run and not in_send_window(now):
+        print(f"Sydney time is {now.isoformat()}, outside 8:55-9:05 window. Skipping.")
+        write_github_output("should_run", "false")
+        return
+
+    products = load_products()
+    results, errors = fetch_all(products)
+    today = now.date().isoformat()
+
+    history = load_history()
+    history[today] = results
+
+    subject, body = build_email(today, products, results, errors, history)
+
+    if args.dry_run:
+        print(subject)
+        print(body)
+        for product in products:
+            print(product["id"], results.get(product["id"]))
+        return
+
+    save_history(history)
+    EMAIL_BODY_FILE.write_text(body, encoding="utf-8")
+    write_github_output("subject", subject)
+    write_github_output("should_run", "true")
+
+
+if __name__ == "__main__":
+    main()
