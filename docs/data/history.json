@@ -174,5 +174,49 @@
       "rrp": 63.99,
       "url": "https://www.chemistwarehouse.com.au/buy/116797/swisse-womens-multivitamin-50-90-tablets"
     }
+  },
+  "2026-08-24": {
+    "blackmores-epo-190": {
+      "name": "Blackmores Evening Primrose Oil 190 Capsules",
+      "price": 31.99,
+      "rrp": 54.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/53030/blackmores-evening-primrose-oil-190-capsules"
+    },
+    "blackmores-lutein-120": {
+      "name": "Blackmores Lutein Defence 120 Tablets",
+      "price": 52.99,
+      "rrp": 69.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/135139/blackmores-lutein-defence-120-tablets"
+    },
+    "cerave-lotion-1l": {
+      "name": "CeraVe Daily Moisturising Lotion 1L",
+      "price": 38.99,
+      "rrp": 38.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/91315/cerave-daily-moisturising-lotion-1l"
+    },
+    "ostelin-vitd3-300": {
+      "name": "Ostelin Vitamin D3 1000IU 300 Capsules Exclusive Size",
+      "price": 29.99,
+      "rrp": 34.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/68620/ostelin-vitamin-d3-1000iu-300-capsules-exclusive-size"
+    },
+    "swisse-fish-oil-1500-400": {
+      "name": "Swisse Ultiboost Odourless High Strength Wild Fish Oil 1500mg 400 Capsules",
+      "price": 47.99,
+      "rrp": 79.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/67489/swisse-ultiboost-odourless-high-strength-wild-fish-oil-1500mg-400-capsules"
+    },
+    "swisse-mens-mv-90": {
+      "name": "Swisse Mens Multivitamin 50+ 90 Tablets",
+      "price": 42.99,
+      "rrp": 63.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/116801/swisse-mens-multivitamin-50-90-tablets"
+    },
+    "swisse-womens-mv-90": {
+      "name": "Swisse Womens Multivitamin 50+ 90 Tablets",
+      "price": 42.99,
+      "rrp": 63.99,
+      "url": "https://www.chemistwarehouse.com.au/buy/116797/swisse-womens-multivitamin-50-90-tablets"
+    }
   }
 }
